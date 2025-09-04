@@ -3,15 +3,16 @@ from setuptools import setup, find_packages
 
 
 setup(
-    name='onionsearch',
+    name='dw-search',
     version="1.3",
-    packages=find_packages(),
-    author="megadose",
+    package_dir={'': 'src'},
+    packages=find_packages('src'),
+    author="R0h1tAnand",
     install_requires=["requests","argparse","termcolor","tqdm", "html5lib","bs4","PySocks"],
-    description="OnionSearch is a script that scrapes urls on different .onion search engines.",
+    description="DW-Search is a script that scrapes urls on different .onion search engines.",
     include_package_data=True,
-    url='http://github.com/megadose/OnionSearch',
-    entry_points = {'console_scripts': ['onionsearch = onionsearch.core:scrape']},
+    url='https://github.com/R0h1tAnand/DW-Search',
+    entry_points = {'console_scripts': ['dw-search = dw_search.core:scrape']},
     classifiers=[
         "Programming Language :: Python",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
