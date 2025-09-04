@@ -1,219 +1,181 @@
 # DW-Search
-👋 Hi there! For any professional inquiries or collaborations, please reach out to me at:
-megadose@protonmail.com
 
-📧 Preferably, use your professional email for correspondence. Let's keep it short and sweet, and all in English!
+[![PyPI Version](https://img.shields.io/pypi/v/dw-search)](https://pypi.org/project/dw-search/)
+[![Downloads](https://static.pepy.tech/badge/dw-search)](https://pepy.tech/project/dw-search)
+[![License](https://img.shields.io/pypi/l/dw-search)](https://github.com/R0h1tAnand/DW-Search/blob/main/LICENSE)
+[![CI](https://github.com/R0h1tAnand/DW-Search/actions/workflows/ci.yml/badge.svg)](https://github.com/R0h1tAnand/DW-Search/actions)
 
-![PyPI](https://img.shields.io/pypi/v/dw-search) ![PyPI - Week](https://img.shields.io/pypi/dw/dw-search) ![PyPI - Downloads](https://static.pepy.tech/badge/dw-search) ![PyPI - License](https://img.shields.io/pypi/l/dw-search)
-#### For BTC Donations : 1FHDM49QfZX6pJmhjLE5tB2K6CaTLMZpXZ
-## Educational purposes only
+A powerful Python tool for discovering and scraping URLs from various Tor (.onion) search engines. Built for researchers, security professionals, and developers exploring the dark web safely and efficiently.
 
-DW-Search is a Python3 script that scrapes urls on different ".onion" search engines.
+## ✨ Features
 
-![](https://files.catbox.moe/vguy1e.png)
+- 🔍 **Multi-Engine Scraping**: Supports 16+ different .onion search engines
+- ⚡ **High Performance**: Utilizes multiprocessing for faster results
+- 📊 **Flexible Output**: CSV format with customizable fields
+- 🛡️ **Tor Integration**: Seamless proxy configuration for .onion access
+- 📈 **Progress Tracking**: Real-time progress bars and statistics
+- 🎯 **Selective Scraping**: Choose specific engines or exclude unwanted ones
+- 🔧 **Command-Line Interface**: Easy-to-use CLI with extensive options
 
-### Demo
+## 🚀 Quick Start
 
-![](https://github.com/R0h1tAnand/gif-demo/raw/master/dw-search.gif)
+### Prerequisites
 
+- Python 3.6 or higher
+- Tor Browser or Tor daemon running
+- Internet connection
 
-## 💡 Prerequisite
-[Python 3](https://www.python.org/download/releases/3.0/)
+### Installation
 
-## 📚 Currently supported Search engines
-- ahmia
-- darksearchio
-- onionland
-- notevil
-- darksearchenginer
-- phobos
-- onionsearchserver
-- torgle
-- onionsearchengine
-- tordex
-- tor66
-- tormax
-- haystack
-- multivac
-- evosearch
-- deeplink
+#### From PyPI (Recommended)
 
-## 🛠️ Installation
-### With PyPI
+```bash
+pip install dw-search
+```
 
-```pip3 install dw-search```
-
-### With Github
+#### From Source
 
 ```bash
 git clone https://github.com/R0h1tAnand/DW-Search.git
-cd DW-Search/
-python3 setup.py install
+cd DW-Search
+pip install -r requirements.txt
+pip install -e .
 ```
 
+### Basic Usage
 
-## 📈  Usage
+```bash
+# Simple search
+dw-search "python programming"
 
-Help:
-```
-usage: dw-search [-h] [--proxy PROXY] [--output OUTPUT]
-                  [--continuous_write CONTINUOUS_WRITE] [--limit LIMIT]
-                  [--engines [ENGINES [ENGINES ...]]]
-                  [--exclude [EXCLUDE [EXCLUDE ...]]]
-                  [--fields [FIELDS [FIELDS ...]]]
-                  [--field_delimiter FIELD_DELIMITER] [--mp_units MP_UNITS]
-                  search
+# Search with custom output
+dw-search "machine learning" --output results.csv
 
-positional arguments:
-  search                The search string or phrase
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --proxy PROXY         Set Tor proxy (default: 127.0.0.1:9050)
-  --output OUTPUT       Output File (default: output_$SEARCH_$DATE.txt), where $SEARCH is replaced by the first chars of the search string and $DATE is replaced by the datetime
-  --continuous_write CONTINUOUS_WRITE
-                        Write progressively to output file (default: False)
-  --limit LIMIT         Set a max number of pages to load
-  --engines [ENGINES [ENGINES ...]]
-                        Engines to request (default: full list)
-  --exclude [EXCLUDE [EXCLUDE ...]]
-                        Engines to exclude (default: none)
-  --fields [FIELDS [FIELDS ...]]
-                        Fields to output to csv file (default: engine name link), available fields are shown below
-  --field_delimiter FIELD_DELIMITER
-                        Delimiter for the CSV fields
-  --mp_units MP_UNITS   Number of processing units (default: core number minus 1)
-
+# Use specific search engines
+dw-search "security research" --engines ahmia tor66 phobos
 ```
 
-### Multi-processing behaviour
+## 📖 Usage Guide
 
-By default, the script will run with the parameter `mp_units = cpu_count() - 1`. It means if you have a machine with 4 cores,
-it will run 3 scraping functions in parallel. You can force `mp_units` to any value but it is recommended to leave to default.
-You may want to set it to 1 to run all requests sequentially (disabling multi-processing feature).
+### Command Line Options
 
-Please note that continuous writing to csv file has not been *heavily* tested with multiprocessing feature and therefore
-may not work as expected.
+| Option | Description | Default |
+|--------|-------------|---------|
+| `search` | Search query (required) | - |
+| `--proxy` | Tor proxy address | `127.0.0.1:9050` |
+| `--output` | Output file path | `output_$SEARCH_$DATE.txt` |
+| `--limit` | Max pages per engine | `0` (unlimited) |
+| `--engines` | Specific engines to use | All available |
+| `--exclude` | Engines to exclude | None |
+| `--fields` | CSV fields to output | `engine name link` |
+| `--mp_units` | Number of processes | `cpu_count - 1` |
 
-Please also note that the progress bars may not be properly displayed when `mp_units` is greater than 1.
-**It does not affect the results**, so don't worry.
+### Advanced Examples
 
-### Examples
+```bash
+# Limit results and use specific engines
+dw-search "blockchain" --engines ahmia darksearchio --limit 5
 
-To request all the engines for the word "computer":
-```
-dw-search "computer"
-```
+# Custom output fields
+dw-search "privacy" --fields engine domain link --field_delimiter ";"
 
-To request all the engines excepted "Ahmia" and "Candle" for the word "computer":
-```
-dw-search "computer" --exclude ahmia candle
-```
+# Exclude certain engines
+dw-search "anonymity" --exclude notevil torgle
 
-To request only "Tor66", "DeepLink" and "Phobos" for the word "computer":
-```
-dw-search "computer" --engines tor66 deeplink phobos
-```
-
-The same as previously but limiting to 3 the number of pages to load per engine:
-```
-dw-search "computer" --engines tor66 deeplink phobos --limit 3
+# Continuous writing for large searches
+dw-search "big data" --continuous_write True
 ```
 
-Please kindly note that the list of supported engines (and their keys) is given in the script help (-h).
+### Tor Configuration
 
+1. Install and start Tor Browser
+2. Ensure Tor is listening on port 9050 (default)
+3. DW-Search will automatically route requests through Tor
 
-### Output
+## 🔧 Supported Search Engines
 
-#### Default output
+| Engine | Status | Description |
+|--------|--------|-------------|
+| ahmia | ✅ Active | Popular clearnet .onion search |
+| darksearchio | ✅ Active | Dark web search engine |
+| onionland | ✅ Active | Comprehensive .onion directory |
+| phobos | ✅ Active | Advanced dark web search |
+| tor66 | ✅ Active | Fast .onion search results |
+| haystack | ✅ Active | Curated .onion links |
+| onionsearchserver | ✅ Active | Dedicated .onion search |
+| darksearchenginer | ✅ Active | Specialized search engine |
+| torgle | ⚠️ Variable | Alternative search option |
+| notevil | ❌ Offline | Currently unavailable |
+| onionsearchengine | ❌ Offline | Currently unavailable |
+| tordex | ❌ Offline | Currently unavailable |
+| tor66 | ✅ Active | Fast .onion search results |
+| tormax | ❌ Offline | Currently unavailable |
+| multivac | ❌ Offline | Currently unavailable |
+| evosearch | ❌ Offline | Currently unavailable |
+| deeplink | ❌ Offline | Currently unavailable |
 
-By default, the file is written at the end of the process. The file will be csv formatted, containing the following columns:
+*Engine availability may change over time. Some engines may be temporarily offline.*
+
+## 🏗️ Development
+
+### Setup Development Environment
+
+```bash
+git clone https://github.com/R0h1tAnand/DW-Search.git
+cd DW-Search
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+pip install -e .
 ```
-"engine","name of the link","url"
-```
-
-#### Customizing the output fields
-
-You can customize what will be flush in the output file by using the parameters `--fields` and `--field_delimiter`.
-
-`--fields` allows you to add, remove, re-order the output fields. The default mode is show just below. Instead, you can for instance
-choose to output:
-```
-"engine","name of the link","url","domain"
-```
-by setting `--fields engine name link domain`.
-
-Or even, you can choose to output:
-```
-"engine","domain"
-```
-by setting `--fields engine domain`.
-
-These are examples but there are many possibilities.
-
-Finally, you can also choose to modify the CSV delimiter (comma by default), for instance: `--field_delimiter ";"`.
-
-#### Changing filename
-
-The filename will be set by default to `output_$DATE_$SEARCH.txt`, where $DATE represents the current datetime and $SEARCH the first
-characters of the search string.
-
-You can modify this filename by using `--output` when running the script, for instance:
-```
-dw-search "computer" --output "\$DATE.csv"
-dw-search "computer" --output output.txt
-dw-search "computer" --output "\$DATE_\$SEARCH.csv"
-...
-```
-(Note that it might be necessary to escape the dollar character.)
-
-In the csv file produced, the name and url strings are sanitized as much as possible, but there might still be some problems...
-
-#### Write progressively
-
-You can choose to progressively write to the output (instead of everything at the end, which would prevent
-losing the results if something goes wrong). To do so you have to use `--continuous_write True`, just as is:
-```
-dw-search "computer" --continuous_write True
-```
-You can then use the `tail -f` (tail follow) Unix command to actively watch or monitor the results of the scraping.
-
-## 🛠️ Development
-
-### Setup
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/R0h1tAnand/DW-Search.git
-   cd DW-Search
-   ```
-
-2. Create a virtual environment:
-   ```bash
-   python -m venv .env
-   source .env/bin/activate  # On Windows: .env\Scripts\activate
-   ```
-
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   pip install -e .
-   ```
 
 ### Running Tests
 
 ```bash
-python -m unittest discover tests.test_core
+python -m unittest discover tests
 ```
 
 ### Building Documentation
 
-Documentation is in the `docs/` directory.
+Documentation is available in the `docs/` directory. View the full documentation at [docs/index.md](docs/index.md).
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please read the contributing guidelines before making a pull request.
+We welcome contributions! Here's how you can help:
 
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes and add tests
+4. Run the test suite: `python -m unittest discover tests`
+5. Commit your changes: `git commit -m 'Add amazing feature'`
+6. Push to the branch: `git push origin feature/amazing-feature`
+7. Open a Pull Request
 
-## 📝 License
-[GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.fr.html)
+### Development Guidelines
+
+- Follow PEP 8 style guidelines
+- Add unit tests for new features
+- Update documentation for API changes
+- Ensure all tests pass before submitting
+
+## 📄 License
+
+This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
+
+## ⚠️ Disclaimer
+
+DW-Search is intended for educational and research purposes only. Users are responsible for complying with all applicable laws and regulations when using this tool. The authors are not responsible for any misuse or illegal activities.
+
+## 📞 Contact
+
+For questions, issues, or contributions:
+
+- 📧 Email: [Your Email Here]
+- 🐛 Issues: [GitHub Issues](https://github.com/R0h1tAnand/DW-Search/issues)
+- 📖 Documentation: [Full Docs](docs/index.md)
+
+---
+
+**Made with ❤️ for the research community**
+
+*If you find this tool useful, please consider starring the repository!* ⭐
