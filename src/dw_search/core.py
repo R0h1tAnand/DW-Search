@@ -97,12 +97,21 @@ parser.add_argument("--field_delimiter", type=str, default=",", help='Delimiter 
 parser.add_argument("--mp_units", type=int, default=(cpu_count() - 1), help="Number of processing units (default: "
                                                                             "core number minus 1)")
 
-args = parser.parse_args()
-proxies = {'http': 'socks5h://{}'.format(args.proxy), 'https': 'socks5h://{}'.format(args.proxy)}
-filename = args.output
+# Initialize defaults for variables used when imported as module
+args = None
+proxies = None
+filename = None
 field_delim = ","
-if args.field_delimiter and len(args.field_delimiter) == 1:
-    field_delim = args.field_delimiter
+
+def parse_arguments():
+    global args, proxies, filename, field_delim
+    args = parser.parse_args()
+    proxies = {'http': 'socks5h://{}'.format(args.proxy), 'https': 'socks5h://{}'.format(args.proxy)}
+    filename = args.output
+    field_delim = ","
+    if args.field_delimiter and len(args.field_delimiter) == 1:
+        field_delim = args.field_delimiter
+    return args
 
 
 def random_headers():
@@ -129,6 +138,13 @@ def get_tqdm_desc(e_name, pos):
     return "%20s (#%d)" % (e_name, pos)
 
 
+def get_max_pages(default_max=100):
+    """Get the maximum number of pages to scrape based on args.limit"""
+    if args is not None and hasattr(args, 'limit') and args.limit != 0:
+        return args.limit
+    return default_max
+
+
 def ahmia(searchstr):
     results = []
     ahmia_url = supported_engines['ahmia'] + "/search/?q={}"
@@ -148,9 +164,7 @@ def ahmia(searchstr):
 def darksearchio(searchstr):
     results = []
     darksearchio_url = supported_engines['darksearchio'] + "/api/search?query={}&page={}"
-    max_nb_page = 30
-    if args.limit != 0:
-        max_nb_page = args.limit
+    max_nb_page = get_max_pages(30)
 
     with requests.Session() as s:
         s.proxies = proxies
@@ -755,13 +769,13 @@ def link_finder(engine_str, data_obj):
     csv_file = None
     found_links = []
 
-    if args.continuous_write:
+    if args is not None and args.continuous_write and filename:
         csv_file = open(filename, 'a', newline='')
 
     def add_link():
         found_links.append({"engine": engine_str, "name": name, "link": link})
 
-        if args.continuous_write and csv_file.writable():
+        if args is not None and args.continuous_write and csv_file and csv_file.writable():
             csv_writer = csv.writer(csv_file, delimiter=field_delim, quoting=csv.QUOTE_ALL)
             fields = {"engine": engine_str, "name": name, "link": link}
             write_to_csv(csv_writer, fields)
@@ -902,52 +916,75 @@ def run_method(method_name_and_argument):
     return ret
 
 
-def scrape():
-    global filename
-
+def scrape(search_term=None, output_file=None, proxy=None, engines_list=None, exclude_list=None, limit=0, continuous_write=False, mp_units=None, field_delimiter=','):
+    global filename, args, proxies, field_delim
+    
+    # Use provided parameters or args from command line
+    if args is None and search_term is None:
+        # Neither command line args nor parameters provided
+        return []
+    
+    # Setup parameters based on function arguments or command line args
+    search = search_term if search_term is not None else args.search
+    if output_file is not None:
+        filename = output_file
+    if proxy is not None:
+        proxies = {'http': f'socks5h://{proxy}', 'https': f'socks5h://{proxy}'}
+    if field_delimiter != ',':
+        field_delim = field_delimiter
+    
     start_time = datetime.now()
 
-    # Building the filename
-    filename = str(filename).replace("$DATE", start_time.strftime("%Y%m%d%H%M%S"))
-    search = str(args.search).replace(" ", "")
-    if len(search) > 10:
-        search = search[0:9]
-    filename = str(filename).replace("$SEARCH", search)
+    # Building the filename if using args
+    if filename:
+        filename = str(filename).replace("$DATE", start_time.strftime("%Y%m%d%H%M%S"))
+        search_clean = str(search).replace(" ", "")
+        if len(search_clean) > 10:
+            search_clean = search_clean[0:9]
+        filename = str(filename).replace("$SEARCH", search_clean)
 
     func_args = []
     stats_dict = {}
-    if args.engines and len(args.engines) > 0:
-        eng = args.engines[0]
+    
+    # Use either function args or command line args
+    use_engines = engines_list if engines_list is not None else (args.engines if args is not None and hasattr(args, 'engines') else None)
+    use_exclude = exclude_list if exclude_list is not None else (args.exclude if args is not None and hasattr(args, 'exclude') else None)
+    use_continuous_write = continuous_write if args is None else args.continuous_write
+    use_limit = limit if args is None else args.limit
+    use_mp_units = mp_units if mp_units is not None else (args.mp_units if args is not None and hasattr(args, 'mp_units') else None)
+    
+    if use_engines and len(use_engines) > 0:
+        eng = use_engines
         for e in eng:
             try:
-                if not (args.exclude and len(args.exclude) > 0 and e in args.exclude[0]):
-                    func_args.append("{}:{}".format(e, args.search))
+                if not (use_exclude and len(use_exclude) > 0 and e in use_exclude[0]):
+                    func_args.append("{}:{}".format(e, search))
                     stats_dict[e] = 0
             except KeyError:
                 print("Error: search engine {} not in the list of supported engines".format(e))
     else:
         for e in supported_engines.keys():
-            if not (args.exclude and len(args.exclude) > 0 and e in args.exclude[0]):
-                func_args.append("{}:{}".format(e, args.search))
+            if not (use_exclude and len(use_exclude) > 0 and e in use_exclude):
+                func_args.append("{}:{}".format(e, search))
                 stats_dict[e] = 0
 
     # Doing multiprocessing
-    if args.mp_units and args.mp_units > 0:
-        units = args.mp_units
+    if use_mp_units and use_mp_units > 0:
+        units = use_mp_units
     else:
         # Use (cores count - 1), but not less then one, threads
         units = max((cpu_count() - 1), 1)
     print("search.py started with {} processing units...".format(units))
     freeze_support()
 
-    results = {}
+    results = []
     with Pool(units) as p:
         results_map = p.map(run_method, func_args)
         results = reduce(lambda a, b: a + b if b is not None else a, results_map)
 
     stop_time = datetime.now()
 
-    if not args.continuous_write:
+    if filename and not use_continuous_write:
         with open(filename, 'w', newline='') as csv_file:
             csv_writer = csv.writer(csv_file, delimiter=field_delim, quoting=csv.QUOTE_ALL)
             for r in results:
@@ -963,4 +1000,20 @@ def scrape():
         n = stats_dict[s]
         print("    {}: {}".format(s, str(n)))
         total += n
-    print("  Total: {} links written to {}".format(str(total), filename))
+    
+    if filename:
+        print("  Total: {} links written to {}".format(str(total), filename))
+    
+    return results
+
+
+def main():
+    """Main entry point when script is run directly"""
+    # Parse command line arguments
+    parse_arguments()
+    # Run the scrape function with parsed arguments
+    scrape()
+
+
+if __name__ == "__main__":
+    main()

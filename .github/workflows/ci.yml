@@ -22,4 +22,5 @@ jobs:
           pip install -e .
       - name: Run tests
         run: |
-          python -m unittest discover test
+          # discover and run only tests inside the repository `tests` directory
+          python -m unittest discover -s tests -p "test_*.py"
