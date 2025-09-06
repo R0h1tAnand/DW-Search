@@ -2,180 +2,289 @@
 
 [![PyPI Version](https://img.shields.io/pypi/v/dw-search)](https://pypi.org/project/dw-search/)
 [![Downloads](https://static.pepy.tech/badge/dw-search)](https://pepy.tech/project/dw-search)
-[![License](https://img.shields.io/pypi/l/dw-search)](https://github.com/R0h1tAnand/DW-Search/blob/main/LICENSE)
-[![CI](https://github.com/R0h1tAnand/DW-Search/actions/workflows/ci.yml/badge.svg)](https://github.com/R0h1tAnand/DW-Search/actions)
+[![License](https://img.shields.io/pypi/l/dw-search)](LICENSE)
 
-A powerful Python tool for discovering and scraping URLs from various Tor (.onion) search engines. Built for researchers, security professionals, and developers exploring the dark web safely and efficiently.
+> Discover, collect, and export .onion links safely and efficiently via multiple Tor search engines.
 
-## ✨ Features
+DW-Search is a lightweight, CLI-first Python tool designed for security researchers, incident responders, and developers who need structured access to Tor (.onion) search results. It runs parallel queries against multiple onion search backends, normalizes results, and produces CSV output ready for analysis.
 
-- 🔍 **Multi-Engine Scraping**: Supports 16+ different .onion search engines
-- ⚡ **High Performance**: Utilizes multiprocessing for faster results
-- 📊 **Flexible Output**: CSV format with customizable fields
-- 🛡️ **Tor Integration**: Seamless proxy configuration for .onion access
-- 📈 **Progress Tracking**: Real-time progress bars and statistics
-- 🎯 **Selective Scraping**: Choose specific engines or exclude unwanted ones
-- 🔧 **Command-Line Interface**: Easy-to-use CLI with extensive options
+## Why DW-Search?
 
-## 🚀 Quick Start
+- Run many engines at once to increase coverage
+- High-throughput collection using multiprocessing
+- Clean, configurable CSV output for downstream tooling
+- Works over Tor (SOCKS proxy) — keeps traffic on the Tor network
+- CLI focused: scriptable, automatable, and easy to integrate
 
-### Prerequisites
+## Quick start
 
-- Python 3.6 or higher
-- Tor Browser or Tor daemon running
-- Internet connection
+Prerequisites
 
-### Installation
+- Python 3.6+
+- Tor (Tor Browser or system tor) running and accepting SOCKS connections (default: 127.0.0.1:9050)
 
-#### From PyPI (Recommended)
+Install (recommended)
 
-```bash
+PowerShell / Bash:
+
+```powershell
 pip install dw-search
 ```
 
-#### From Source
+From source
 
-```bash
+```powershell
 git clone https://github.com/R0h1tAnand/DW-Search.git
 cd DW-Search
 pip install -r requirements.txt
 pip install -e .
 ```
 
-### Basic Usage
+Basic usage
 
-```bash
+```powershell
 # Simple search
-dw-search "python programming"
+dw-search "privacy policies"
 
-# Search with custom output
-dw-search "machine learning" --output results.csv
+# Save to CSV with custom fields
+dw-search "privacy" --output results.csv --fields engine domain link
 
-# Use specific search engines
-dw-search "security research" --engines ahmia tor66 phobos
+# Use specific engines and limit pages
+dw-search "blockchain" --engines ahmia phobos --limit 5
 ```
 
-## 📖 Usage Guide
+Tip: use `--continuous_write True` for long-running searches so results are flushed incrementally.
 
-### Command Line Options
+## Common options
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `search` | Search query (required) | - |
-| `--proxy` | Tor proxy address | `127.0.0.1:9050` |
-| `--output` | Output file path | `output_$SEARCH_$DATE.txt` |
-| `--limit` | Max pages per engine | `0` (unlimited) |
-| `--engines` | Specific engines to use | All available |
-| `--exclude` | Engines to exclude | None |
-| `--fields` | CSV fields to output | `engine name link` |
-| `--mp_units` | Number of processes | `cpu_count - 1` |
+- --proxy           Tor SOCKS proxy (default: 127.0.0.1:9050)
+- --output          Output file path (CSV)
+- --fields          Space-separated fields to include in output (e.g. "engine name link")
+- --field_delimiter Field delimiter for CSV output (default: `,`)
+- --engines         Comma/space-separated engines to use (default: all)
+- --exclude         Engines to exclude
+- --limit           Max pages per engine (0 = unlimited)
+- --mp_units        Number of worker processes (default: cpu_count - 1)
 
-### Advanced Examples
+Run `dw-search --help` for the complete list of flags and examples.
 
-```bash
-# Limit results and use specific engines
-dw-search "blockchain" --engines ahmia darksearchio --limit 5
+## Tor configuration
 
-# Custom output fields
-dw-search "privacy" --fields engine domain link --field_delimiter ";"
+1. Install Tor (Tor Browser or tor daemon).
+2. Start Tor and verify a SOCKS proxy (commonly 127.0.0.1:9050).
+3. Use the default proxy or pass a custom address with `--proxy`.
 
-# Exclude certain engines
-dw-search "anonymity" --exclude notevil torgle
+Use Tor responsibly: respect site terms and rate limits.
 
-# Continuous writing for large searches
-dw-search "big data" --continuous_write True
-```
+## Supported search engines (representative)
 
-### Tor Configuration
+Availability changes frequently; check `src/dw_search/core.py` for the current list.
 
-1. Install and start Tor Browser
-2. Ensure Tor is listening on port 9050 (default)
-3. DW-Search will automatically route requests through Tor
+| Engine | Status |
+|--------|--------|
+| ahmia | Active |
+| darksearchio | Active |
+| onionland | Active |
+| phobos | Active |
+| tor66 | Active |
+| haystack | Active |
+| torgle | Variable |
+| notevil | Offline/variable |
 
-## 🔧 Supported Search Engines
+## Development
 
-| Engine | Status | Description |
-|--------|--------|-------------|
-| ahmia | ✅ Active | Popular clearnet .onion search |
-| darksearchio | ✅ Active | Dark web search engine |
-| onionland | ✅ Active | Comprehensive .onion directory |
-| phobos | ✅ Active | Advanced dark web search |
-| tor66 | ✅ Active | Fast .onion search results |
-| haystack | ✅ Active | Curated .onion links |
-| onionsearchserver | ✅ Active | Dedicated .onion search |
-| darksearchenginer | ✅ Active | Specialized search engine |
-| torgle | ⚠️ Variable | Alternative search option |
-| notevil | ❌ Offline | Currently unavailable |
-| onionsearchengine | ❌ Offline | Currently unavailable |
-| tordex | ❌ Offline | Currently unavailable |
-| tor66 | ✅ Active | Fast .onion search results |
-| tormax | ❌ Offline | Currently unavailable |
-| multivac | ❌ Offline | Currently unavailable |
-| evosearch | ❌ Offline | Currently unavailable |
-| deeplink | ❌ Offline | Currently unavailable |
+Local development (PowerShell):
 
-*Engine availability may change over time. Some engines may be temporarily offline.*
-
-## 🏗️ Development
-
-### Setup Development Environment
-
-```bash
+```powershell
 git clone https://github.com/R0h1tAnand/DW-Search.git
 cd DW-Search
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 pip install -e .
 ```
 
-### Running Tests
+Run tests
 
-```bash
+```powershell
 python -m unittest discover tests
 ```
 
-### Building Documentation
+Docs
 
-Documentation is available in the `docs/` directory. View the full documentation at [docs/index.md](docs/index.md).
+See `docs/index.md` for extended documentation and examples.
 
-## 🤝 Contributing
+## Contributing
 
-We welcome contributions! Here's how you can help:
+Contributions welcome. Suggested workflow:
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Make your changes and add tests
-4. Run the test suite: `python -m unittest discover tests`
-5. Commit your changes: `git commit -m 'Add amazing feature'`
-6. Push to the branch: `git push origin feature/amazing-feature`
-7. Open a Pull Request
+1. Fork and create a feature branch
+2. Add tests for changes
+3. Run tests locally
+4. Open a clear Pull Request
 
-### Development Guidelines
+Follow PEP 8 and keep new dependencies minimal.
 
-- Follow PEP 8 style guidelines
-- Add unit tests for new features
-- Update documentation for API changes
-- Ensure all tests pass before submitting
+## License
 
-## 📄 License
+This project is licensed under the GNU General Public License v3.0 — see `LICENSE`.
 
-This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
+## Disclaimer
 
-## ⚠️ Disclaimer
+Intended for legitimate research and educational use. The authors are not responsible for misuse. Ensure compliance with local laws and target site policies.
 
-DW-Search is intended for educational and research purposes only. Users are responsible for complying with all applicable laws and regulations when using this tool. The authors are not responsible for any misuse or illegal activities.
+## Contact
 
-## 📞 Contact
-
-For questions, issues, or contributions:
-
-- 📧 Email: [Your Email Here]
-- 🐛 Issues: [GitHub Issues](https://github.com/R0h1tAnand/DW-Search/issues)
-- 📖 Documentation: [Full Docs](docs/index.md)
+- Issues: https://github.com/R0h1tAnand/DW-Search/issues
+- Maintainer email: (not provided in repository)
 
 ---
 
-**Made with ❤️ for the research community**
+If you want, I can also:
 
-*If you find this tool useful, please consider starring the repository!* ⭐
+- add a short quickstart doc in `docs/`
+- add a `README-DEV.md` with dev notes and common troubleshooting
+
+[![PyPI Version](https://img.shields.io/pypi/v/dw-search)](https://pypi.org/project/dw-search/)
+[![Downloads](https://static.pepy.tech/badge/dw-search)](https://pepy.tech/project/dw-search)
+[![License](https://img.shields.io/pypi/l/dw-search)](LICENSE)
+
+# DW-Search
+
+> Discover, collect, and export .onion links safely and efficiently via multiple Tor search engines.
+
+DW-Search is a lightweight, CLI-first Python tool aimed at security researchers, digital forensics professionals, and developers who need to programmatically discover Tor (.onion) resources. It orchestrates parallel queries across several onion search engines, normalizes results, and writes structured output for analysis.
+
+## Highlights
+
+- Multi-engine scraping (many popular .onion search providers)
+- Fast, parallel collection using multiprocessing
+- Flexible CSV output with configurable fields and delimiters
+- Built to run over Tor (SOCKS proxy support)
+- Robust CLI with filtering, exclusion, and continuous write options
+
+## Quick start
+
+Prerequisites
+
+- Python 3.6+
+- Tor (Tor Browser or tor daemon) running locally and accepting SOCKS connections (default: 127.0.0.1:9050)
+
+Install (recommended: PyPI)
+
+PowerShell (Windows) / Bash (Linux/macOS):
+
+```powershell
+pip install dw-search
+```
+
+From source
+
+```powershell
+git clone https://github.com/R0h1tAnand/DW-Search.git
+cd DW-Search
+pip install -r requirements.txt
+pip install -e .
+```
+
+Basic usage
+
+```powershell
+# Simple search
+dw-search "privacy policies"
+
+# Save to CSV with custom fields
+dw-search "privacy" --output results.csv --fields engine domain link
+
+# Use specific engines and limit pages
+dw-search "blockchain" --engines ahmia phobos --limit 5
+```
+
+If you plan to run long or large searches, use `--continuous_write True` so results are flushed incrementally.
+
+## Typical options
+
+- --proxy           Tor SOCKS proxy (default: 127.0.0.1:9050)
+- --output          Output file path (CSV)
+- --fields          Space-separated fields to include in output (e.g. "engine name link")
+- --field_delimiter Field delimiter for CSV output (default: `,`)
+- --engines         Comma/space-separated engines to use (default: all)
+- --exclude         Engines to exclude
+- --limit           Max pages per engine (0 = unlimited)
+- --mp_units        Number of worker processes (default: cpu_count - 1)
+
+Run `dw-search --help` for the full list of flags and examples.
+
+## Tor configuration
+
+1. Install Tor (Tor Browser or system tor).
+2. Start Tor and confirm a SOCKS proxy is available (commonly 127.0.0.1:9050).
+3. Point the tool at that proxy (default is used automatically).
+
+Note: using Tor responsibly is important — respect rate limits and terms of service of target sites.
+
+## Supported search engines (sample)
+
+The project integrates with many onion search endpoints. Availability fluctuates — this list is representative, not guaranteed up-to-date.
+
+| Engine | Status |
+|--------|--------|
+| ahmia | Active |
+| darksearchio | Active |
+| onionland | Active |
+| phobos | Active |
+| tor66 | Active |
+| haystack | Active |
+| torgle | Variable |
+| notevil | Offline/variable |
+
+For the current engine list and status, see the `src/dw_search/core.py` implementation which enumerates supported backends.
+
+## Development
+
+Local development setup (PowerShell)
+
+```powershell
+git clone https://github.com/R0h1tAnand/DW-Search.git
+cd DW-Search
+python -m venv .venv
+.\\.venv\\Scripts\\Activate.ps1
+pip install -r requirements.txt
+pip install -e .
+```
+
+Run tests
+
+```powershell
+python -m unittest discover tests
+```
+
+Docs
+
+See `docs/index.md` for extended documentation and examples.
+
+## Contributing
+
+Contributions are welcome. Please follow these simple steps:
+
+1. Fork the repo and create a feature branch
+2. Add tests for any new behavior
+3. Run the test suite and ensure it passes
+4. Open a clear Pull Request with a description of your changes
+
+Coding style: follow PEP 8 and keep new dependencies minimal.
+
+## License
+
+This project is licensed under the GNU General Public License v3.0 — see `LICENSE`.
+
+## Disclaimer
+
+DW-Search is provided for legitimate research, incident response, and educational use. The authors are not responsible for misuse. Ensure you comply with local laws and the terms of service of any sites you interact with.
+
+## Contact & support
+
+- Issues: https://github.com/R0h1tAnand/DW-Search/issues
+- Email: (maintainer email not provided in repo)
+
+---
